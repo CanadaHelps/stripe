@@ -611,8 +611,8 @@ class CRM_Core_Payment_StripeIPN {
         return TRUE;
 
       case 'customer.subscription.updated':
-        // Subscription is updated. This used to be "implemented" but didn't work
-        return TRUE;
+        // Subscription is updated.
+        return $this->processWebhookCustomerSubscriptionUpdated();
 
       case 'customer.subscription.deleted':
         // Subscription is cancelled
@@ -627,6 +627,78 @@ class CRM_Core_Payment_StripeIPN {
     }
 
     // Unhandled event
+    return TRUE;
+  }
+
+  private function processWebhookCustomerSubscriptionUpdated() {
+    if (!$this->getSubscriptionDetails()) {
+      // Subscription was not found in CiviCRM
+      CRM_Mjwshared_Hook::webhookEventNotMatched('stripe', $this, 'subscription_not_found');
+      return TRUE;
+    }
+
+    $data = $this->getData();
+    if (!property_exists($data, 'previous_attributes')) {
+      // Nothing changed?!
+      return TRUE;
+    }
+
+    /*
+    previous_attributes->metadata:
+      Description: Ignore
+    */
+    // First work out what changed. This is held in "previous_attributes" on webhook data
+    $previousAttributes = $this->getData();
+    // Convert to array for ease of processing
+    $data = json_decode(json_encode($data), TRUE);
+
+    $amountHasChanged = FALSE;
+    foreach ($data['previous_attributes'] as $attributeKey => $attributeValue) {
+      switch($attributeKey) {
+        case 'quantity':
+          $amountHasChanged = TRUE;
+          break;
+      }
+    }
+
+    if ($amountHasChanged) {
+      $calculatedItems = [];
+      // Recalculate amount and update
+      foreach ($data['object']['items']['data'] as $item) {
+        $subscriptionItem['subscriptionItemID'] = $item['id'];
+        $subscriptionItem['quantity'] = $item['quantity'];
+        $subscriptionItem['unit_amount'] = $item['price']['unit_amount'];
+
+        $calculatedItem['currency'] = $item['price']['currency'];
+        $calculatedItem['amount'] = $subscriptionItem['unit_amount'] * $subscriptionItem['quantity'];
+        if ($item['price']['type'] === 'recurring') {
+          $calculatedItem['frequency_unit'] = $item['price']['recurring']['interval'];
+          $calculatedItem['frequency_interval'] = $item['price']['recurring']['interval_count'];
+        }
+
+        if (!isset($calculatedItem['frequency_unit'])) {
+          \Civi::log()->warning("StripeIPN: {$data['object']['id']} customer.subscription.updated:
+            Non recurring subscription items are not supported");
+        }
+        else {
+          $intervalKey = $calculatedItem['currency'] . '_' . $calculatedItem['frequency_unit'] . '_' . $calculatedItem['frequency_interval'];
+          if (isset($calculatedItems[$intervalKey])) {
+            // If we have more than one subscription item with the same currency and frequency add up the amounts and combine.
+            $calculatedItem['amount'] += $calculatedItems[$intervalKey]['amount'];
+            $calculatedItem['subscriptionItem'] = $calculatedItems[$intervalKey]['subscriptionItem'];
+          }
+          $calculatedItem['subscriptionItem'][] = $subscriptionItem;
+          $calculatedItems[$intervalKey] = $calculatedItem;
+        }
+      }
+    }
+
+      // $calculatedPrice now contains array of new prices by [frequency_unit][frequency_interval]
+      // Eg. ['month'][1] = [
+      //       'currency' => 'usd',
+      //       'amount' => '2000', (amount is in pence)
+      //     ];
+
     return TRUE;
   }
 

@@ -167,7 +167,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
    * @return bool
    */
   public function supportsEditRecurringContribution() {
-    return FALSE;
+    return TRUE;
   }
 
   public function supportsRecurring() {
