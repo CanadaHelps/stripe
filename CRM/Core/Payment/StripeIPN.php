@@ -9,6 +9,7 @@
  +--------------------------------------------------------------------+
  */
 
+use Brick\Money\Money;
 use Civi\Api4\ContributionRecur;
 use Civi\Api4\PaymentprocessorWebhook;
 
@@ -681,7 +682,7 @@ class CRM_Core_Payment_StripeIPN {
             Non recurring subscription items are not supported");
         }
         else {
-          $intervalKey = $calculatedItem['currency'] . '_' . $calculatedItem['frequency_unit'] . '_' . $calculatedItem['frequency_interval'];
+          $intervalKey = strtolower($calculatedItem['currency'] . '_' . $calculatedItem['frequency_unit'] . '_' . $calculatedItem['frequency_interval']);
           if (isset($calculatedItems[$intervalKey])) {
             // If we have more than one subscription item with the same currency and frequency add up the amounts and combine.
             $calculatedItem['amount'] += $calculatedItems[$intervalKey]['amount'];
@@ -693,11 +694,22 @@ class CRM_Core_Payment_StripeIPN {
       }
     }
 
-      // $calculatedPrice now contains array of new prices by [frequency_unit][frequency_interval]
-      // Eg. ['month'][1] = [
-      //       'currency' => 'usd',
-      //       'amount' => '2000', (amount is in pence)
-      //     ];
+    // $calculatedItems now contains array of new prices by key [currency]_[frequency_unit]_[frequency_interval]
+    // Eg. $calculatedItems[usd_month_1] = [
+    //       'currency' => 'usd',
+    //       'amount' => '2000', (amount is in pence)
+    //     ];
+
+    // Now check if recurring contribution matches frequency
+
+    $contributionRecurKey = strtolower("{$this->contributionRecur['currency']}_{$this->contributionRecur['frequency_unit']}_{$this->contributionRecur['frequency_interval']}");
+    if (isset($calculatedItems[$contributionRecurKey])) {
+      $calculatedItem = $calculatedItems[$contributionRecurKey];
+      $templateContribution = CRM_Contribute_BAO_ContributionRecur::getTemplateContribution($this->getContributionRecurID());
+      if (!Money::of($calculatedItem['amount'], $calculatedItem['currency'])->isAmountAndCurrencyEqualTo(Money::of($templateContribution['amount'], $templateContribution['currency']))) {
+        // Create a new template contribution to update the amount
+      }
+    }
 
     return TRUE;
   }
