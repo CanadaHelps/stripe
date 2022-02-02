@@ -27,7 +27,6 @@ nav:
 - Advanced:
   - API: api.md
   - Events and custom form integrations: events.md
-  - Hooks: hooks.md
   - Testing: testing.md
 - Release Notes: releasenotes.md
 - Roadmap: roadmap.md
