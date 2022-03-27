@@ -162,6 +162,14 @@ function civicrm_api3_stripe_paymentintent_process($params) {
     if (!$firewall->checkIsCSRFTokenValid(CRM_Utils_Type::validate($params['csrfToken'], 'String'))) {
       _civicrm_api3_stripe_paymentintent_returnInvalid($firewall->getReasonDescription());
     }
+    // Check the data saved when rendering the form to see if the form is a frontend or backoffice form.
+    $paymentSession = CRM_Core_Session::singleton()->get($params['csrfToken'], E::SHORT_NAME);
+    if ($paymentSession && !empty($paymentSession['isBackOffice'])) {
+      // If the form is backoffice enable MOTO payments
+      if (\Civi::settings()->get('stripe_moto')) {
+        $params['payment_method_options']['card']['moto'] = TRUE;
+      }
+    }
   }
   $paymentMethodID = CRM_Utils_Type::validate($params['payment_method_id'] ?? '', 'String');
   $paymentIntentID = CRM_Utils_Type::validate($params['payment_intent_id'] ?? '', 'String');
@@ -210,14 +218,15 @@ function civicrm_api3_stripe_paymentintent_process($params) {
     }
   }
   else {
-    $params = [
+    $processPaymentIntentParams = [
       'paymentIntentID' => $paymentIntentID ?? NULL,
       'paymentMethodID' => $paymentMethodID ?? NULL,
       'capture' => $capture,
       'amount' => $amount,
       'currency' => $currency,
+      'payment_method_options' => $params['payment_method_options'] ?? [],
     ];
-    $processIntentResult = $stripePaymentIntent->processPaymentIntent($params);
+    $processIntentResult = $stripePaymentIntent->processPaymentIntent($processPaymentIntentParams);
     if ($processIntentResult->ok) {
       return civicrm_api3_create_success($processIntentResult->data);
     }

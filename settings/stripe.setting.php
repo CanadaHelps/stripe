@@ -205,4 +205,21 @@ Required by the paymentRequest button. 2-character code (eg. "US") that can be f
       ]
     ],
   ],
+  'stripe_moto' => [
+    'name' => 'stripe_moto',
+    'type' => 'Boolean',
+    'html_type' => 'checkbox',
+    'default' => 0,
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'title' => E::ts('Enable Mail Order Telephone Order (MOTO) transactions for backoffice payments'),
+    'description' => E::ts('If enabled payments submitted via the backoffice forms will be treated as MOTO and will not require additional (SCA/3DSecure) customer challenges.
+Do NOT enable unless you\'ve enabled this feature on your Stripe account - see <a href="%1">Stripe MOTO payments</a>', [1 => 'https://support.stripe.com/questions/mail-order-telephone-order-moto-transactions-when-to-categorize-transactions-as-moto']),
+    'html_attributes' => [],
+    'settings_pages' => [
+      'stripe' => [
+        'weight' => 110,
+      ]
+    ],
+  ],
 ];

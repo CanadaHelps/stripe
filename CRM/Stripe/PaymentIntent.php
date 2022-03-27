@@ -320,6 +320,10 @@ class CRM_Stripe_PaymentIntent {
 
     $intentParams['confirm'] = TRUE;
     $intentParams['confirmation_method'] = 'manual';
+    // This may contain additional payment_method_options. Currently it's used when MOTO payments are enabled to set card=>moto=>true
+    if (!empty($params['payment_method_options'])) {
+      $intentParams['payment_method_options'] = $params['payment_method_options'];
+    }
     if (empty($params['paymentIntentID']) && empty($params['paymentMethodID'])) {
       $intentParams['confirm'] = FALSE;
       $intentParams['confirmation_method'] = 'automatic';

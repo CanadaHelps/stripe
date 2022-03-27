@@ -433,9 +433,17 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
       'paymentProcessorTypeID' => $form->_paymentProcessor['payment_processor_type_id'],
       'locale' => CRM_Stripe_Api::mapCiviCRMLocaleToStripeLocale(),
       'apiVersion' => CRM_Stripe_Check::API_VERSION,
-      'csrfToken' => class_exists('\Civi\Firewall\Firewall') ? \Civi\Firewall\Firewall::getCSRFToken() : NULL,
+      'csrfToken' => NULL,
       'country' => \Civi::settings()->get('stripe_country'),
     ];
+    if (class_exists('\Civi\Firewall\Firewall')) {
+      $firewall = new \Civi\Firewall\Firewall();
+      $jsVars['csrfToken'] = $firewall->generateCSRFToken();
+      // This is used for MOTO payments. We need to check if the form creating the paymentIntent is a frontend (public) or backoffice (admin) form.
+      // We cannot check via javascript because that would be insecure (could be changed by the user submitting the form).
+      // So we store the data in the session using the csrfToken as key which is unique to the rendered form and is submitted when creating the paymentIntent.
+      CRM_Core_Session::singleton()->set($jsVars['csrfToken'], ['isBackOffice' => $form->isBackOffice ?? FALSE], E::SHORT_NAME);
+    }
 
     // Add CSS via region (it won't load on drupal webform if added via \Civi::resources()->addStyleFile)
     CRM_Core_Region::instance('billing-block')->add([
