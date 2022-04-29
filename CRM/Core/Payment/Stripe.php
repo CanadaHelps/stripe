@@ -255,7 +255,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
     // Attempt one retry (Stripe default is 0) if we can't connect to Stripe servers
     Stripe::setMaxNetworkRetries(1);
     // Set plugin info and API credentials.
-    Stripe::setAppInfo('CiviCRM', CRM_Utils_System::version(), CRM_Utils_System::baseURL());
+    Stripe::setAppInfo('CanadaHelps', CRM_Utils_System::version(), CRM_Utils_System::baseURL());
     Stripe::setApiKey(self::getSecretKey($this->_paymentProcessor));
     Stripe::setApiVersion(CRM_Stripe_Check::API_VERSION);
   }
@@ -319,7 +319,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
       $err = self::parseStripeException('plan_retrieve', $e, FALSE);
       if ($err['code'] === 'resource_missing') {
         $formatted_amount = CRM_Utils_Money::formatLocaleNumericRoundedByCurrency(($amount / 100), $currency);
-        $productName = "CiviCRM " . (isset($params['membership_name']) ? $params['membership_name'] . ' ' : '') . "every {$params['recurFrequencyInterval']} {$params['recurFrequencyUnit']}(s) {$currency}{$formatted_amount}";
+        $productName = "CanadaHelps " . (isset($params['membership_name']) ? $params['membership_name'] . ' ' : '') . "every {$params['recurFrequencyInterval']} {$params['recurFrequencyUnit']}(s) {$currency}{$formatted_amount}";
         if ($this->_paymentProcessor['is_test']) {
           $productName .= '-test';
         }

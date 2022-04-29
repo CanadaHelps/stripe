@@ -218,12 +218,12 @@ class CRM_Stripe_Customer {
       'name' => $contactDisplayName,
       // Stripe does not include the Customer Name when exporting payments, just the customer 
       // description, so we stick the name in the description.
-      'description' =>  $contactDisplayName . ' (CiviCRM)',
+      'description' =>  $contactDisplayName . ' (CanadaHelps)',
       'email' => $params['email'] ?? '',
       'metadata' => [
-        'CiviCRM Contact ID' => $params['contact_id'],
-        'CiviCRM URL' => CRM_Utils_System::url('civicrm/contact/view', "reset=1&cid={$params['contact_id']}", TRUE, NULL, TRUE, FALSE, TRUE),
-        'CiviCRM Version' => CRM_Utils_System::version() . ' ' . $extVersion,
+        'CanadaHelps Contact ID' => $params['contact_id'],
+        'CanadaHelps URL' => CRM_Utils_System::url('civicrm/contact/view', "reset=1&cid={$params['contact_id']}", TRUE, NULL, TRUE, FALSE, TRUE),
+        'CanadaHelps Version' => CRM_Utils_System::version() . ' ' . $extVersion,
       ],
     ];
     // This is used for new subscriptions/invoices as the default payment method
