@@ -255,7 +255,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
     // Attempt one retry (Stripe default is 0) if we can't connect to Stripe servers
     Stripe::setMaxNetworkRetries(1);
     // Set plugin info and API credentials.
-    Stripe::setAppInfo('CanadaHelps', CRM_Utils_System::version(), CRM_Utils_System::baseURL());
+    Stripe::setAppInfo('CiviCRM', CRM_Utils_System::version(), CRM_Utils_System::baseURL());
     Stripe::setApiKey(self::getSecretKey($this->_paymentProcessor));
     Stripe::setApiVersion(CRM_Stripe_Check::API_VERSION);
   }
