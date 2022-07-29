@@ -726,12 +726,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
     // If omitted the subscription will start immediately.
     $billingCycleAnchor = $this->getRecurBillingCycleDay($params);
     if ($billingCycleAnchor) {
-      if (date('Ymd', $billingCycleAnchor) <= date('Ymd')) {
-        $subscriptionParams['billing_cycle_anchor'] = $billingCycleAnchor;
-      }
-      else {
-        $subscriptionParams['trial_end'] = $billingCycleAnchor;
-      }
+      $subscriptionParams['billing_cycle_anchor'] = $billingCycleAnchor;
     }
 
     // Create the stripe subscription for the customer
