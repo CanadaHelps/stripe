@@ -1280,6 +1280,7 @@ class CRM_Core_Payment_Stripe extends CRM_Core_Payment {
       ->selectRowCount()
       ->addWhere('event_id', '=', $webhookEvent['event_id'])
       ->addWhere('id', '<', $webhookEvent['id'])
+      ->addWhere('status', '!=', 'error')
       ->execute()->count();
     if ($duplicates) {
       PaymentprocessorWebhook::update(FALSE)
