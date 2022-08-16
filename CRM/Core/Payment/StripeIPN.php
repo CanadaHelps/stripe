@@ -412,7 +412,8 @@ class CRM_Core_Payment_StripeIPN {
   private function processEventType() {
     $pendingContributionStatusID = (int) CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Pending');
     $failedContributionStatusID = (int) CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Failed');
-    $statusesAllowedToComplete = [$pendingContributionStatusID, $failedContributionStatusID];
+    $scheduledContributionStatusID = (int) CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Scheduled');
+    $statusesAllowedToComplete = [$pendingContributionStatusID, $failedContributionStatusID, $scheduledContributionStatusID];
 
     // NOTE: If you add an event here make sure you add it to the webhook or it will never be received!
     switch($this->eventType) {
